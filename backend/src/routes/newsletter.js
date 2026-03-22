@@ -10,7 +10,7 @@ router.post('/', async (req, res) => {
 
   try {
     // 1. Send Welcome Email to User
-    await transporter.sendEmail({
+    await sendEmail({
       from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Welcome to Akshaya Agensy!',
