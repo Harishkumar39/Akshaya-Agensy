@@ -7,16 +7,16 @@ dotenv.config()
 const router = express.Router();
 
 
-router.post('/', async (req, res) => {
+router.post('/subscribe', async (req, res) => {
   const { email } = req.body;
 
   if (!email) return res.status(400).json({ message: "Email is required" });
 
   try {
     const userMailOptions = {
-      from: `"Akshaya Agency" <${process.env.EMAIL_USER}>`,
+      from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Welcome to Akshaya Agency!',
+      subject: 'Welcome to Akshaya Agensy!',
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 10px;">
           <h2 style="color: #f59e0b;">Thank you for subscribing!</h2>
@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
             Use code <b>WELCOME10</b> for 10% off your first purchase.
           </p>
           <br/><br/>
-          <p>Best regards,<br/><b>Team Akshaya Agency</b></p>
+          <p>Best regards,<br/><b>Team Akshaya Agensy</b></p>
         </div>
       `
     };
