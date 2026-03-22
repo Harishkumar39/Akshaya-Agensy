@@ -1,39 +1,51 @@
-import nodemailer from 'nodemailer';
+import { google } from 'googleapis';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-export const sendEmail = async ({ to, subject, html, attachments }) => {
+const oAuth2Client = new google.auth.OAuth2(
+  process.env.OAUTH_CLIENT_ID,
+  process.env.OAUTH_CLIENT_SECRET,
+  process.env.REDIRECT_URI
+);
+
+// This tells Google to use your refresh token whenever the access token expires
+oAuth2Client.setCredentials({ refresh_token: process.env.OAUTH_REFRESH_TOKEN });
+
+export const sendEmail = async ({ to, subject, html }) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 2525,
-      secure: false,
-      requireTLS: true,
-      family:4,
-      auth: {
-        type: 'OAuth2',
-        user: process.env.EMAIL_USER,
-        clientId: process.env.OAUTH_CLIENT_ID,
-        clientSecret: process.env.OAUTH_CLIENT_SECRET,
-        refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+
+    // Proper MIME structure for Gmail API
+    const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
+    const messageParts = [
+      `To: ${to}`,
+      'Content-Type: text/html; charset=utf-8',
+      'MIME-Version: 1.0',
+      `Subject: ${utf8Subject}`,
+      '',
+      html,
+    ];
+    const message = messageParts.join('\n');
+
+    // Encode the message to Base64URL
+    const encodedMessage = Buffer.from(message)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    const result = await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedMessage,
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
     });
 
-    const mailOptions = {
-      from: `Akshaya Agensy <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
-      attachments: attachments || [],
-    };
-
-    const result = await transporter.sendMail(mailOptions);
-    return result;
+    console.log("Email Sent via API:", result.data.id);
+    return result.data;
   } catch (error) {
-    console.error("Gmail API Error:", error.message);
+    console.error("GMAIL API CRITICAL ERROR:", error.message);
     throw error;
   }
 };
