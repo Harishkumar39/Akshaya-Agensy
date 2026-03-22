@@ -55,7 +55,11 @@ app.use("/api/contact", contactRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
+  res.json({ 
+    status: "ok", 
+    uptime: process.uptime(), // Shows how long the server has been awake
+    timestamp: new Date().toISOString() 
+  });
 });
 
 export default app;

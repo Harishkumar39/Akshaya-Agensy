@@ -1,6 +1,6 @@
 // AdminHome.jsx
 import { Link } from "react-router-dom";
-import { LayoutDashboard, Box, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Box, ShoppingCart, Home } from "lucide-react";
 
 const AdminHome = () => {
   const cards = [
@@ -15,6 +15,13 @@ const AdminHome = () => {
         <h1 className="text-3xl font-black text-slate-900">Admin Hub</h1>
         <p className="text-slate-500">Welcome back. Select a module to continue.</p>
       </div>
+      <Link 
+          to="/" 
+          className="lg:hidden flex items-center gap-2 text-slate-600 hover:text-amber-600 font-bold bg-slate-100 hover:bg-amber-50 px-4 py-2 rounded-xl transition-all border border-transparent hover:border-amber-200"
+        >
+          <Home size={18} />
+          <span>Back to Store</span>
+      </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {cards.map((card) => (

@@ -17,12 +17,12 @@ const ProfilePage = () => {
     useEffect(() => {
       const fetchUserData = async () => {
         try {
-          const { data } = await axios.get(`${API_URL}api/auth/profile`);
-          console.log(data)
+          const { data } = await axios.get(`${API_URL}/api/auth/profile`);
           setFormData({
             name: data.name,
             phone: data.phone || "",
             address: data.address || "",
+            email: data.email || ""
           });
         } catch (err) {
           console.error("Failed to fetch profile", err);

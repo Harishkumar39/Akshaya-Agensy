@@ -225,8 +225,7 @@ const Navbar = () => {
               <User size={22} />
             </Link>
           )}
-        </div>
-        {user?.role === "admin" && (
+          {user?.role === "admin" && (
           <Link 
             to="/admin/dashboard" 
             className="bg-amber-500 text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-tighter hover:bg-amber-600 transition-all ml-4"
@@ -234,6 +233,8 @@ const Navbar = () => {
             Admin Panel
           </Link>
         )}
+        </div>
+        
       </nav>
 
       {/* MOBILE SIDEBAR */}
