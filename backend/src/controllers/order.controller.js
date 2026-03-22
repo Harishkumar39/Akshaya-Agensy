@@ -9,13 +9,15 @@ import transporter from "../utils/mailer.js";
 const AGENCY_COORDS = { lat: 12.880774, lng: 80.228448 };
 
 const SHIPPING_ZONES = {
-  "600119": 0, "600097": 30, "600100": 30, "600130": 30,
+  "600119": 50, "600097": 50, "600100": 50, "600130": 50,
   "600041": 80, "600096": 80, "600115": 80, "603103": 80,
   "600020": 100, "600042": 120, "600113": 120, "600091": 120
 };
 
 const calculateFee = (subtotal, shippingAddress) => {
-  if (subtotal >= 1000) return 0;
+  if (subtotal < 500) {
+    throw new Error("MIN_ORDER_NOT_MET");
+  }
   const userPin = shippingAddress.pincode;
   if (SHIPPING_ZONES[userPin] !== undefined) {
     return SHIPPING_ZONES[userPin];
@@ -32,6 +34,12 @@ export const calculateShippingPreview = async (req, res) => {
     if (err.message === "OUT_OF_RANGE") {
       return res.status(400).json({ 
         message: "Location is beyond our 15km delivery radius.",
+        allowable: false 
+      });
+    }
+    if(err.message === "MIN_ORDER_NOT_MET"){
+      return res.status(400).json({ 
+        message: "Minimum order value is Rs. 500.",
         allowable: false 
       });
     }
@@ -60,10 +68,11 @@ export const createRazorpayOrder = async (req, res) => {
       // FIX 1: Use 'calculatedSubtotal' here instead of 'subtotal'
       verifiedFee = await calculateFee(calculatedSubtotal, shippingAddress);
     } catch (err) {
+      if (err.message === "MIN_ORDER_NOT_MET") {
+        return res.status(400).json({ message: "Minimum order must be ₹500." });
+      }
       if (err.message === "OUT_OF_RANGE") {
-        return res.status(400).json({ 
-          message: "Sorry, Akshaya Agensy only delivers within 15 km of our location." 
-        });
+        return res.status(400).json({ message: "Sorry, Akshaya Agensy only delivers within 15 km of our location." });
       }
       throw err;
     }
@@ -187,7 +196,7 @@ export const verifyPaymentAndCreateOrder = async (req, res) => {
     try {
       const pdfBuffer = await generateInvoicePDF(order);
       
-      await transporter.sendMail({
+      await transporter.sendEmail({
         to: req.user.email,
         subject: `Order Confirmed! #${order._id.toString().slice(-6).toUpperCase()}`,
         html: `
@@ -296,7 +305,7 @@ export const cancelMyOrder = async (req, res) => {
     await order.save();
 
     try {
-      await transporter.sendMail({
+      await transporter.sendEmail({
         from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
         to: populatedOrder.user.email,
         subject: `Order Cancelled #${order._id.toString().slice(-6).toUpperCase()}`,

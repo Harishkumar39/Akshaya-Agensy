@@ -18,10 +18,7 @@ export const AuthProvider = ({ children }) => {
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
           // If the cookie is dead, clear the state and go to login
           setUser(null);
-          // Only redirect if we're not already on the login page to avoid loops
-          if (window.location.pathname !== "/login") {
-             window.location.href = "/login";
-          }
+
         }
         return Promise.reject(error);
       }

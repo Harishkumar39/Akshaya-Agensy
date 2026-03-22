@@ -86,7 +86,7 @@ const Footer = () => {
           <h3 className="text-sm font-black uppercase tracking-widest mb-8">Shop</h3>
           <ul className="space-y-4 text-slate-400 text-sm">
             <li><a href="/products" className="hover:text-amber-400 transition">Shop</a></li>
-            <li><a href="#" className="hover:text-amber-400 transition">Best Selling Products</a></li>
+            <li><a href="/#featured" className="hover:text-amber-400 transition">Best Selling Products</a></li>
           </ul>
         </div>
 
@@ -103,12 +103,12 @@ const Footer = () => {
             <div className="flex items-start gap-3 text-slate-400 text-sm">
               <Clock size={20} className="shrink-0 mt-1" />
               <div>
-                <p>Monday – Saturday: 9:00-20:00</p>
+                <p>Monday - Saturday: 9:00 - 20:00</p>
               </div>
             </div>
             <div className="flex items-center gap-3 text-slate-400 text-sm hover:text-white cursor-pointer transition">
               <Mail size={20} />
-              <span>sureshstationerysadyar@gmail.com</span>
+              <span>akshaya.agensy@gmail.com</span>
             </div>
           </div>
         </div>

@@ -85,7 +85,7 @@ const HomePage = () => {
       </div>
 
       {/* 3. BEST SELLERS / PRODUCT GRID */}
-      <section className="mb-20">
+      <section id="featured" className="mb-20">
         <div className="flex flex-col md:flex-row justify-between md:items-start mb-12 gap-6 px-2">
           <div className="space-y-2">
             <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">Featured Collection</h2>

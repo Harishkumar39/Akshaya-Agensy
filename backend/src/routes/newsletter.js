@@ -7,21 +7,34 @@ router.post('/', async (req, res) => {
   const { email } = req.body;
 
   if (!email) return res.status(400).json({ message: "Email is required" });
-
+  console.log(email)
   try {
     // 1. Send Welcome Email to User
-    await transporter.sendMail({
+    await transporter.sendEmail({
       to: email,
       subject: 'Welcome to Akshaya Agensy!',
       html: `
-        <div style="font-family: sans-serif; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #f59e0b;">Thank you for subscribing!</h2>
-          <p>You'll now be the first to hear about our <b>new arrivals</b> and <b>bulk supply offers</b>.</p>
-          <div style="background: #f8fafc; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <p style="margin:0;">Use code <b>WELCOME10</b> for 10% off your first purchase.</p>
-          </div>
-          <p>Best regards,<br/><b>Team Akshaya Agensy</b></p>
-        </div>
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; line-height: 1.6; color: #1e293b;">
+        <h2 style="color: #0f172a; border-bottom: 2px solid #f59e0b; padding-bottom: 10px;">Subscription Confirmed</h2>
+        
+        <p>Hello,</p>
+        
+        <p>Thank you for subscribing to the <b>Akshaya Agensy</b> newsletter. We are excited to have you with us!</p>
+        
+        <p>You will now receive occasional updates regarding:</p>
+        <ul>
+          <li>New stationery arrivals & Discounts</li>
+          <li>Bulk supply availability for businesses</li>
+        </ul>
+
+        <p>If you have any specific requirements for your office or school supplies, feel free to reply to this email directly.</p>
+
+        <p style="margin-top: 30px;">
+          Best regards,<br/>
+          <strong>Ramesh G</strong><br/>
+          <span style="color: #64748b; font-size: 14px;">Akshaya Agensy</span>
+        </p>
+      </div>
       `
     });
 

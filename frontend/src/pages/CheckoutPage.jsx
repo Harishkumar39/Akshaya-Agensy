@@ -15,7 +15,7 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   
   const [isEditing, setIsEditing] = useState(false);
-  const [outOfRangeError, setOutOfRangeError] = useState(""); 
+  const [errorMessage, setErrorMessage] = useState(""); 
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -54,13 +54,19 @@ const CheckoutPage = () => {
   };
 
   const handleToggleEdit = async () => {
+
+    if (totalPrice < 500) {
+      setErrorMessage("Minimum order value is ₹500. Please add more items to your cart.");
+      return;
+    }
+    
     if (isEditing) {
       if (!formData.name.trim()) return alert("Please enter a name.");
       if (!/^\d{10}$/.test(formData.phone)) return alert("Please enter a valid 10-digit phone number.");
       if (!/^\d{6}$/.test(formData.pincode)) return alert("Please enter a valid 6-digit Pincode.");
 
       setIsCalculating(true);
-      setOutOfRangeError(""); 
+      setErrorMessage(""); 
 
       try {
         const { data } = await axios.post(`${API_URL}/api/payment/shipping-preview`, {
@@ -76,7 +82,7 @@ const CheckoutPage = () => {
         setIsEditing(false); 
       } catch (error) {
           const message = error.response?.data?.message || "Error calculating shipping";
-          setOutOfRangeError(message);
+          setErrorMessage(message);
           setOrderTotals({ shippingFee: null, grandTotal: totalPrice });
       } finally {
         setIsCalculating(false);
@@ -98,7 +104,7 @@ const CheckoutPage = () => {
   };
 
   const handlePayment = async () => {
-    if (processing || isEditing || orderTotals.shippingFee === null || !!outOfRangeError) return;
+    if (processing || isEditing || orderTotals.shippingFee === null || !!errorMessage) return;
     setProcessing(true);
     
     try {
@@ -187,10 +193,10 @@ const CheckoutPage = () => {
                 </button>
               </div>
 
-              {outOfRangeError && (
+              {errorMessage && (
                 <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-2xl flex items-start gap-4">
                   <AlertCircle className="text-red-500 mt-1" size={20} />
-                  <p className="text-sm font-bold text-red-600">{outOfRangeError}</p>
+                  <p className="text-sm font-bold text-red-600">{errorMessage}</p>
                 </div>
               )}
 
@@ -340,12 +346,12 @@ const CheckoutPage = () => {
               >
                 {processing ? <Loader2 className="animate-spin" /> : 
                  isEditing ? "CONFIRM TO UNLOCK" : 
-                 outOfRangeError ? "OUT OF RANGE" : <><CreditCard size={22} /> PAY NOW</>}
+                 errorMessage ? errorMessage : <><CreditCard size={22} /> PAY NOW</>}
               </button>
 
-              {(isEditing || outOfRangeError || orderTotals.shippingFee === null) && (
-                <p className={`text-center mt-4 text-[10px] font-bold uppercase tracking-widest ${outOfRangeError ? "text-red-500 animate-bounce" : "text-amber-500 animate-pulse"}`}>
-                  {outOfRangeError ? "Location too far from Akshaya Agency" : "Confirm details to unlock payment"}
+              {(isEditing || errorMessage || orderTotals.shippingFee === null) && (
+                <p className={`text-center mt-4 text-[10px] font-bold uppercase tracking-widest ${errorMessage ? "text-red-500 animate-bounce" : "text-amber-500 animate-pulse"}`}>
+                  {errorMessage ? errorMessage : "Confirm details to unlock payment"}
                 </p>
               )}
             </div>

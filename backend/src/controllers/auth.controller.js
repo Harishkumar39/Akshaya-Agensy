@@ -150,10 +150,12 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// logoutUser and getCurrentUser remain the same...
 export const logoutUser = (req, res) => {
   res.cookie("jwt", "", {
     httpOnly: true,
+    secure: process.env.NODE_ENV !== "development",
+    sameSite: "strict",
+    path: "/",          
     expires: new Date(0),
   });
   res.json({ message: "Logged out successfully" });
@@ -166,9 +168,9 @@ export const getCurrentUser = async (req, res) => {
   res.json(req.user); 
 };
 
-// Example Controller logic
+
 export const updateProfile = async (req, res) => {
-  const user = await User.findById(req.user._id); // From your protect middleware
+  const user = await User.findById(req.user._id);
 
   if (user) {
     user.name = req.body.name || user.name;
