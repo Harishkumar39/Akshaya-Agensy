@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment Variables (CRITICAL)
+.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor settings
+.vscode/
+.idea/
+.DS_Store
+
+# Build/Dist folders (if using TypeScript or a build step)
+dist/
+build/
