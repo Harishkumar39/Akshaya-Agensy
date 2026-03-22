@@ -7,10 +7,11 @@ router.post('/', async (req, res) => {
   const { email } = req.body;
 
   if (!email) return res.status(400).json({ message: "Email is required" });
-  console.log(email)
+
   try {
     // 1. Send Welcome Email to User
     await transporter.sendEmail({
+      from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Welcome to Akshaya Agensy!',
       html: `
