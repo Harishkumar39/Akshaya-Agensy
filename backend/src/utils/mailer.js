@@ -6,10 +6,10 @@ dotenv.config();
 export const sendEmail = async ({ to, subject, html, attachments }) => {
   try {
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
+      host: '74.125.136.108',
       port: 465,
       secure: true,
-      family: 4,
+      family: 4, 
       auth: {
         type: 'OAuth2',
         user: process.env.EMAIL_USER,
@@ -17,6 +17,8 @@ export const sendEmail = async ({ to, subject, html, attachments }) => {
         clientSecret: process.env.OAUTH_CLIENT_SECRET,
         refreshToken: process.env.OAUTH_REFRESH_TOKEN,
       },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
     });
 
     const mailOptions = {
