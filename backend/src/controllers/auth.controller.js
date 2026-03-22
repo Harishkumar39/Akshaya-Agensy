@@ -151,10 +151,11 @@ export const loginUser = async (req, res) => {
 };
 
 export const logoutUser = (req, res) => {
+  const isProduction = process.env.NODE_ENV === "production";
   res.cookie("jwt", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== "development",
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     path: "/",          
     expires: new Date(0),
   });
