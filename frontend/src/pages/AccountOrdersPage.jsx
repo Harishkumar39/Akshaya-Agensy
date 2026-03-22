@@ -38,6 +38,15 @@ const AccountOrdersPage = () => {
 
   useEffect(() => {
     fetchOrders(currentPage);
+  
+    const interval = setInterval(() => {
+      // Only fetch if the user is actually looking at the page
+      if (document.visibilityState === 'visible') {
+        fetchOrders(currentPage);
+      }
+    }, 30000); 
+  
+    return () => clearInterval(interval);
   }, [currentPage, fetchOrders]);
 
   const isCancellable = (createdAt) => {

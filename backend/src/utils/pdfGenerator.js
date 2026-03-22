@@ -10,9 +10,8 @@ export const generateInvoicePDF = (order) => {
 
       // --- Header ---
       doc.fillColor("#0f172a").fontSize(20).font("Helvetica-Bold").text("AKSHAYA AGENSY", { align: "right" });
-      doc.fillColor("#64748b").fontSize(10).font("Helvetica").text("Stationery & General Supplies", { align: "right" });
+      doc.fillColor("#64748b").fontSize(10).font("Helvetica").text("Office & General Stationeries", { align: "right" });
       doc.text("E:39, 9th West Street, Chennai - 600041", { align: "right" });
-      doc.text("GSTIN: [YOUR_GST_NUMBER]", { align: "right" });
       doc.moveDown();
 
       // --- Order Info ---

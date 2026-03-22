@@ -188,7 +188,6 @@ export const verifyPaymentAndCreateOrder = async (req, res) => {
       const pdfBuffer = await generateInvoicePDF(order);
       
       await transporter.sendMail({
-        from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
         to: req.user.email,
         subject: `Order Confirmed! #${order._id.toString().slice(-6).toUpperCase()}`,
         html: `
@@ -252,7 +251,7 @@ export const getMyOrders = async (req, res) => {
 
 export const cancelMyOrder = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate("user", "name email");
 
     if (!order) return res.status(404).json({ message: "Order not found" });
 
@@ -297,7 +296,6 @@ export const cancelMyOrder = async (req, res) => {
     await order.save();
 
     try {
-      const populatedOrder = await order.populate("user", "name email");
       await transporter.sendMail({
         from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
         to: populatedOrder.user.email,

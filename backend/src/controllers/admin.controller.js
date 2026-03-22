@@ -1,7 +1,6 @@
 import User from "../models/User.js";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
-import transporter from "../utils/mailer.js";
 
 export const getAdminSummary = async (req, res) => {
   try {
@@ -14,7 +13,7 @@ export const getAdminSummary = async (req, res) => {
       Order.aggregate([
         {
           $match: {
-            status: { $in: ["paid", "pending", "processing", "shipped", "delivered", "cancelled"] },
+            status: { $in: ["paid", "processing", "shipped", "delivered"] },
           },
         },
         {
@@ -90,29 +89,34 @@ export const getAllOrders = async (req, res) => {
 
     const query = {};
 
+    // Filter by specific status if provided
     if (req.query.status) {
       query.status = req.query.status;
     }
 
-    let ordersQuery = Order.find(query)
-      .populate("user", "name email")
-      .sort("-createdAt")
-      .skip(skip)
-      .limit(limit);
+    // 2. FIXED: Database-level Email Search (Fixes pagination bottleneck)
+    if (req.query.userEmail) {
+      const user = await User.findOne({ 
+        email: { $regex: req.query.userEmail, $options: "i" } 
+      });
+      
+      if (user) {
+        query.user = user._id;
+      } else {
+        // If no user is found with that email, return empty results immediately
+        return res.json({ orders: [], page, totalPages: 0, total: 0 });
+      }
+    }
 
-    let [orders, total] = await Promise.all([
-      ordersQuery,
+    // Execute queries in parallel for speed
+    const [orders, total] = await Promise.all([
+      Order.find(query)
+        .populate("user", "name email")
+        .sort("-createdAt")
+        .skip(skip)
+        .limit(limit),
       Order.countDocuments(query),
     ]);
-
-    const userEmail = req.query.userEmail;
-    if (userEmail) {
-      const emailLower = userEmail.toLowerCase();
-      orders = orders.filter(
-        (o) => o.user?.email && o.user.email.toLowerCase().includes(emailLower),
-      );
-      total = orders.length;
-    }
 
     res.json({
       orders,
@@ -128,9 +132,9 @@ export const getAllOrders = async (req, res) => {
 
 export const getOrderById = async (req, res) => {
   try {
-    // Adding .populate("orderItems.product") if you want to link back to the product model
     const order = await Order.findById(req.params.id)
-      .populate("user", "name email");
+      .populate("user", "name email")
+      .populate("orderItems.product", "name images"); // Added images for the order detail view
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -169,26 +173,7 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    try {
-      await transporter.sendMail({
-        from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
-        to: order.user.email,
-        subject: `Order Update: ${status.toUpperCase()} #${order._id.toString().slice(-6).toUpperCase()}`,
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h2 style="color: #f59e0b;">Your order status has been updated!</h2>
-            <p>Hi ${order.user.name},</p>
-            <p>The status of your order <b>#${order._id}</b> has been changed to: <b style="text-transform: uppercase; color: #1e293b;">${status}</b>.</p>
-            <p>You can track your order details in your account dashboard.</p>
-            <hr />
-            <p>Team Akshaya Agensy</p>
-          </div>`
-      });
-    } catch (mailError) {
-      console.error("STATUS EMAIL ERROR:", mailError.message);
-    }
-
-    res.json(order);
+    res.status(200).json(order);
   } catch (error) {
     console.error("Update order status error:", error.message);
     res.status(500).json({ message: "Server error" });
