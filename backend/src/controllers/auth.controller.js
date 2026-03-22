@@ -1,9 +1,9 @@
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
-import transporter from "../utils/mailer.js";
+import {sendEmail} from "../utils/mailer.js";
 
 const sendOTPEmail = async (email, otp) => {
-  await transporter.sendMail({
+  await sendEmail({
     from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Verify your email address",

@@ -4,7 +4,7 @@ import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js"
 import { generateInvoicePDF } from "../utils/pdfGenerator.js";
-import transporter from "../utils/mailer.js";
+import {sendEmail} from "../utils/mailer.js";
 
 const AGENCY_COORDS = { lat: 12.880774, lng: 80.228448 };
 
@@ -196,7 +196,7 @@ export const verifyPaymentAndCreateOrder = async (req, res) => {
     try {
       const pdfBuffer = await generateInvoicePDF(order);
       
-      await transporter.sendEmail({
+      await sendEmail({
         to: req.user.email,
         subject: `Order Confirmed! #${order._id.toString().slice(-6).toUpperCase()}`,
         html: `
@@ -305,7 +305,7 @@ export const cancelMyOrder = async (req, res) => {
     await order.save();
 
     try {
-      await transporter.sendEmail({
+      await sendEmail({
         from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
         to: populatedOrder.user.email,
         subject: `Order Cancelled #${order._id.toString().slice(-6).toUpperCase()}`,

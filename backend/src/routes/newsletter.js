@@ -1,5 +1,5 @@
 import express from "express";
-import transporter from "../utils/mailer.js";
+import {sendEmail} from "../utils/mailer.js";
 
 const router = express.Router();
 
