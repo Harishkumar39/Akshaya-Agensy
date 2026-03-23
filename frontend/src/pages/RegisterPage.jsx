@@ -30,14 +30,22 @@ const RegisterPage = () => {
   const validateForm = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[6-9]\d{9}$/; 
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-
+  
     if (!formData.name.trim()) return "Name is required";
     if (!phoneRegex.test(formData.phone)) return "Enter a valid 10-digit mobile number";
     if (!emailRegex.test(formData.email)) return "Invalid email format";
-    if (!passwordRegex.test(formData.password)) return "Password must be at least 8 characters with one letter and one number";
+    
+    // Refined Password Check
+    if (formData.password.length < 8) {
+      return "Password must be at least 8 characters long";
+    }
+    if (!/(?=.*[A-Za-z])(?=.*\d)/.test(formData.password)) {
+      return "Password must contain at least one letter and one number";
+    }
+  
     if (formData.password !== formData.confirmPassword) return "Passwords do not match";
     if (!agreed) return "Please agree to the terms & conditions";
+    
     return null;
   };
 
