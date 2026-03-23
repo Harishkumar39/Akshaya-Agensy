@@ -149,7 +149,6 @@ export const verifyPaymentAndCreateOrder = async (req, res) => {
       } else {
         currentPrice = dbProduct.price;
       }
-      console.log(item.qty)
       return acc + (currentPrice * item.qty);
     }, 0);
 
@@ -220,13 +219,8 @@ export const verifyPaymentAndCreateOrder = async (req, res) => {
             <hr />
             <p>Team Akshaya Agensy</p>
           </div>`,
-        attachments: [
-          {
-            filename: `Invoice_${order._id.toString().slice(-6)}.pdf`,
-            content: pdfBuffer,
-            contentType: 'application/pdf'
-          }
-        ]
+        attachmentBuffer: pdfBuffer,
+        fileName: `Invoice_${order._id.toString().slice(-6)}.pdf`
       });
     } catch (mailError) {
       console.error("MAILING ERROR:", mailError.message);
@@ -272,7 +266,6 @@ export const getMyOrders = async (req, res) => {
 
 export const cancelMyOrder = async (req, res) => {
   try {
-    console.log(req.params)
     const order = await Order.findById(req.params.id).populate("user", "name email");
 
     if (!order) return res.status(404).json({ message: "Order not found" });
@@ -316,16 +309,15 @@ export const cancelMyOrder = async (req, res) => {
     // 4. Update Order Status
     order.status = 'cancelled';
     await order.save();
-
     try {
       await sendEmail({
         from: `"Akshaya Agensy" <${process.env.EMAIL_USER}>`,
-        to: populatedOrder.user.email,
+        to: order.user.email,
         subject: `Order Cancelled #${order._id.toString().slice(-6).toUpperCase()}`,
         html: `
           <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
             <h2 style="color: #ef4444;">Order Cancelled</h2>
-            <p>Hi ${populatedOrder.user.name},</p>
+            <p>Hi ${order.user.name},</p>
             <p>Your order <b>#${order._id}</b> has been successfully cancelled as requested.</p>
             <p>If a payment was processed, the refund will be initiated as per our policy.</p>
             <hr />

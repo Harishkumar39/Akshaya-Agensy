@@ -12,23 +12,45 @@ const oAuth2Client = new google.auth.OAuth2(
 // This tells Google to use your refresh token whenever the access token expires
 oAuth2Client.setCredentials({ refresh_token: process.env.OAUTH_REFRESH_TOKEN });
 
-export const sendEmail = async ({ to, subject, html }) => {
+export const sendEmail = async ({ to, subject, html, attachmentBuffer, fileName }) => {
   try {
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+    const boundary = "__MY_BOUNDARY__"; // Unique string to separate parts
 
-    // Proper MIME structure for Gmail API
     const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
+
+    // 1. Construct Multipart MIME message
     const messageParts = [
       `To: ${to}`,
-      'Content-Type: text/html; charset=utf-8',
-      'MIME-Version: 1.0',
       `Subject: ${utf8Subject}`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: text/html; charset=utf-8',
+      'Content-Transfer-Encoding: 7bit',
       '',
       html,
+      '',
     ];
-    const message = messageParts.join('\n');
 
-    // Encode the message to Base64URL
+    if (attachmentBuffer) {
+      messageParts.push(
+        `--${boundary}`,
+        `Content-Type: application/pdf; name="${fileName}"`,
+        'Content-Transfer-Encoding: base64',
+        `Content-Disposition: attachment; filename="${fileName}"`,
+        '',
+        attachmentBuffer.toString('base64'),
+        ''
+      );
+    }
+
+    messageParts.push(`--${boundary}--`);
+
+    const message = messageParts.join('\r\n'); // Use \r\n for MIME standards
+
+    // 2. Encode to Base64URL
     const encodedMessage = Buffer.from(message)
       .toString('base64')
       .replace(/\+/g, '-')
@@ -42,10 +64,9 @@ export const sendEmail = async ({ to, subject, html }) => {
       },
     });
 
-    console.log("Email Sent via API:", result.data.id);
     return result.data;
   } catch (error) {
-    console.error("GMAIL API CRITICAL ERROR:", error.message);
+    console.error("GMAIL API ATTACHMENT ERROR:", error.message);
     throw error;
   }
 };

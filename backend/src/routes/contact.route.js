@@ -1,5 +1,5 @@
 import express from "express";
-import transporter from "../utils/mailer.js";
+import {sendEmail} from "../utils/mailer.js";
 
 const router = express.Router();
 
@@ -36,8 +36,8 @@ router.post('/inquiry', async (req, res) => {
     };
 
     await Promise.all([
-      transporter.sendMail(adminMailOptions),
-      transporter.sendMail(customerMailOptions)
+      sendEmail(adminMailOptions),
+      sendEmail(customerMailOptions)
     ]);
 
     res.status(200).json({ message: "Inquiry sent successfully!" });

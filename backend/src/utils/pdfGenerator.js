@@ -5,13 +5,13 @@ export const generateInvoicePDF = (order) => {
     try {
       const doc = new PDFDocument({ margin: 50, size: 'A4' });
       let buffers = [];
-      doc.on("data", buffers.push.bind(buffers));
+      doc.on("data", (chunk) => buffers.push(chunk));
       doc.on("end", () => resolve(Buffer.concat(buffers)));
 
       // --- Header ---
       doc.fillColor("#0f172a").fontSize(20).font("Helvetica-Bold").text("AKSHAYA AGENSY", { align: "right" });
       doc.fillColor("#64748b").fontSize(10).font("Helvetica").text("Office & General Stationeries", { align: "right" });
-      doc.text("E:39, 9th West Street, Chennai - 600041", { align: "right" });
+      doc.text("No. 282-A, Village High Road, Sholinganallur, Chennai - 600119. (Opp. to Tulip PLay School)", { align: "right" });
       doc.moveDown();
 
       // --- Order Info ---
