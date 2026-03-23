@@ -55,7 +55,6 @@ export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
     const user = await User.findOne({ email });
-    console.log(user)
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -74,7 +73,17 @@ export const verifyOTP = async (req, res) => {
     user.otpExpires = undefined;
     await user.save();
 
-    res.status(200).json({ message: "Email verified successfully. You can now login." });
+    const token = generateToken(res, user); 
+
+    res.status(200).json({ 
+      message: "Email verified successfully!",
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role
+    });
+
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

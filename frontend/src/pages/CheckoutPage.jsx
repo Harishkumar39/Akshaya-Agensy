@@ -65,6 +65,10 @@ const CheckoutPage = () => {
       if (!/^\d{10}$/.test(formData.phone)) return alert("Please enter a valid 10-digit phone number.");
       if (!/^\d{6}$/.test(formData.pincode)) return alert("Please enter a valid 6-digit Pincode.");
 
+      if (!formData.address.trim() || formData.address.length < 10) {
+        return alert("Please enter a complete delivery address.");
+      }
+      
       setIsCalculating(true);
       setErrorMessage(""); 
 
@@ -208,6 +212,7 @@ const CheckoutPage = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     disabled={!isEditing}
+                    required
                     className={`w-full rounded-xl p-4 font-bold transition-all ${
                       isEditing ? "bg-slate-50 border-2 border-amber-100 focus:ring-2 focus:ring-amber-500" : "bg-transparent border-none p-0 text-slate-900"
                     }`}
@@ -222,6 +227,7 @@ const CheckoutPage = () => {
                     value={formData.phone}
                     onChange={handleInputChange}
                     disabled={!isEditing}
+                    required
                     className={`w-full rounded-xl p-4 font-bold transition-all ${
                       isEditing ? "bg-slate-50 border-2 border-amber-100 focus:ring-2 focus:ring-amber-500" : "bg-transparent border-none p-0 text-slate-900"
                     }`}

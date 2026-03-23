@@ -2,6 +2,7 @@ import crypto from "crypto";
 import razorpay from "../config/razorpay.js";
 import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
+import User from "../models/User.js"
 import Product from "../models/Product.js"
 import { generateInvoicePDF } from "../utils/pdfGenerator.js";
 import {sendEmail} from "../utils/mailer.js";
@@ -122,6 +123,17 @@ export const verifyPaymentAndCreateOrder = async (req, res) => {
     if (generatedSignature !== razorpay_signature) {
       return res.status(400).json({ message: "Security Verification Failed. Order not placed." });
     }
+
+    try {
+      await User.findByIdAndUpdate(req.user.id, {
+        address: shippingAddress.address,
+        phone: shippingAddress.phone
+      });
+    } catch (userUpdateError) {
+      // We log this but don't stop the order process
+      console.error("Failed to save address to user profile:", userUpdateError.message);
+    }
+
     const productIds = items.map(item => item._id);
     const dbProducts = await Product.find({ _id: { $in: productIds } });
 
@@ -260,13 +272,14 @@ export const getMyOrders = async (req, res) => {
 
 export const cancelMyOrder = async (req, res) => {
   try {
+    console.log(req.params)
     const order = await Order.findById(req.params.id).populate("user", "name email");
 
     if (!order) return res.status(404).json({ message: "Order not found" });
 
     // 1. Ownership & Status Checks
-    if (order.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ message: "Not authorized" });
+    if (!order.user._id.equals(req.user._id)) {
+      return res.status(401).json({ message: "Not authorized to cancel this order" });
     }
     if (order.status === 'cancelled') {
       return res.status(400).json({ message: "Order is already cancelled" });
