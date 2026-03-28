@@ -101,17 +101,19 @@ const ProductDetailPage = () => {
 
             {/* THUMBNAILS */}
             {product.images?.length > 1 && (
-              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide touch-pan-xr">
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide touch-pan-x snap-x">
                 {product.images.map((img, idx) => (
                   <button 
-                    key={idx}
+                    key={`thumb-${idx}`}
+                    onMouseEnter={() => setPreviewImage(img)}
+                    onMouseLeave={() => setPreviewImage(null)}
                     onClick={() => { setActiveImageIndex(idx); setPreviewImage(null); }}
-                    className={`flex-shrink-0 w-20 h-20 rounded-2xl border-2 transition-all ${activeImageIndex === idx && !previewImage ? 'border-amber-500 scale-95' : 'border-slate-100'}`}
+                    className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl border-2 transition-all snap-start overflow-hidden bg-white ${activeImageIndex === idx && !previewImage ? 'border-amber-500 shadow-lg shadow-amber-100 scale-95' : 'border-slate-100 hover:border-slate-300'}`}
                   >
                     <img 
                     src={getOptimizedUrl(img)} 
-                    key={displayImage}
-                    className="w-full h-auto object-contain mix-blend-multiply transition-opacity duration-500 animate-in fade-in" alt="Images" />
+                    alt={`Thumbnail ${idx}`}
+                    className="w-full h-full object-contain p-2 mix-blend-multiply" />
                   </button>
                 ))}
               </div>
