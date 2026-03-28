@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link, useNavigate, useLocation } from "react-router-dom"; // Added for breadcrumbs
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, Pencil, Trash2, Image as ImageIcon, X, Upload, Loader2, Search, Filter, ChevronRight, Home } from "lucide-react";
 
 const AdminProductsPage = () => {
@@ -24,6 +24,22 @@ const AdminProductsPage = () => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+
+  // HELPER: Sorts categories so children appear immediately after their parents
+  const getSortedCategories = (cats) => {
+    const sorted = [];
+    const parents = cats.filter(c => !c.parent);
+    
+    parents.forEach(parent => {
+      sorted.push(parent);
+      const children = cats.filter(c => String(c.parent) === String(parent._id));
+      sorted.push(...children);
+    });
+
+    // Handle any orphans (cats with parents that don't exist in the list)
+    const orphans = cats.filter(c => c.parent && !parents.find(p => String(p._id) === String(c.parent)));
+    return [...sorted, ...orphans];
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -50,13 +66,13 @@ const AdminProductsPage = () => {
       };
       fetchSingleProduct();
     }
-  }, [location.search]);
+  }, [location.search, API_URL]);
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
     setFormData(initialFormState);
-    navigate("/admin/products", { replace: true }); // Clears the ?edit=... from URL
+    navigate("/admin/products", { replace: true });
   };
 
   const getOptimizedUrl = (url) => {
@@ -123,9 +139,7 @@ const AdminProductsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     try {
-      // Sanitize variant numbers before sending
       const sanitizedVariants = formData.variants.map(v => ({
         ...v,
         price: v.price ? Number(v.price) : 0,
@@ -134,7 +148,7 @@ const AdminProductsPage = () => {
   
       const finalData = {
         ...formData,
-        variants: sanitizedVariants, // Use the sanitized array
+        variants: sanitizedVariants,
         hasVariants: sanitizedVariants.length > 0,
         price: Number(formData.price),
         stock: Number(formData.stock)
@@ -145,7 +159,6 @@ const AdminProductsPage = () => {
         : `${API_URL}/api/admin/products`;
   
       await axios[editingProduct ? "put" : "post"](url, finalData);
-  
       closeModal(); 
       fetchProducts();
     } catch (err) { 
@@ -157,7 +170,7 @@ const AdminProductsPage = () => {
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
       
-      {/* --- BREADCRUMBS (Visible below 1124px) --- */}
+      {/* --- BREADCRUMBS --- */}
       <nav className="flex xl:hidden items-center gap-2 text-sm font-bold text-slate-500 mb-2">
         <Link to="/admin" className="hover:text-amber-500 transition-colors flex items-center gap-1">
           <Home size={16} />
@@ -166,11 +179,11 @@ const AdminProductsPage = () => {
         <span className="text-slate-900 bg-amber-100 px-2 py-1 rounded-md">Inventory</span>
       </nav>
 
-      {/* Header Section (Hidden at 1123px and below) */}
+      {/* Header Section */}
       <div className="hidden min-[1124px]:flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-100 gap-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Inventory Management</h1>
-          <p className="text-slate-500 font-medium text-sm md:text-base">Managing stock for Akshaya Agensy</p>
+          <p className="text-slate-500 font-medium text-sm md:text-base">Managing stock for Akshaya Agency</p>
         </div>
         <button 
           onClick={() => { setEditingProduct(null); setFormData(initialFormState); setIsModalOpen(true); }}
@@ -182,7 +195,6 @@ const AdminProductsPage = () => {
 
       {/* Filters & Mobile Add Button */}
       <div className="space-y-4">
-        {/* Mobile New Product Button (Visible below 1124px) */}
         <button 
           onClick={() => { setEditingProduct(null); setFormData(initialFormState); setIsModalOpen(true); }}
           className="min-[1124px]:hidden w-full bg-slate-900 text-amber-400 py-4 rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg"
@@ -209,7 +221,12 @@ const AdminProductsPage = () => {
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               <option value="">All Categories</option>
-              {categories.map(c => <option key={c._id} value={c.slug}>{c.name}</option>)}
+              {/* Filter Dropdown also uses Hierarchy */}
+              {getSortedCategories(categories).map(c => (
+                <option key={c._id} value={c.slug}>
+                  {c.parent ? `↳ ${c.name}` : c.name.toUpperCase()}
+                </option>
+              ))}
             </select>
             <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 rotate-90 pointer-events-none" size={18} />
           </div>
@@ -225,7 +242,6 @@ const AdminProductsPage = () => {
           </div>
         ) : (
           <>
-            {/* Desktop Table (Only visible above 1123px) */}
             <div className="hidden min-[1124px]:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-50/50 border-b border-slate-100">
@@ -250,9 +266,19 @@ const AdminProductsPage = () => {
                         </div>
                       </td>
                       <td className="p-8">
-                        <span className="px-4 py-1.5 bg-slate-100 rounded-full text-[11px] font-black text-slate-500 uppercase tracking-wider">
-                          {categories.find(c => String(c._id) === String(p.category))?.name || "Uncategorized"}
-                        </span>
+                        {(() => {
+                          const categoryId = p.category?._id || p.category;
+                          const currentCat = categories.find(c => String(c._id) === String(categoryId));
+                          const parentCat = currentCat?.parent ? categories.find(c => String(c._id) === String(currentCat.parent)) : null;
+                          return (
+                            <div className="flex flex-col gap-1">
+                              {parentCat && <span className="text-[9px] font-black text-slate-300 uppercase">{parentCat.name} ›</span>}
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider w-fit ${parentCat ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'}`}>
+                                {currentCat?.name || "Uncategorized"}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="p-8 font-black text-slate-900 text-lg">₹{p.price}</td>
                       <td className="p-8">
@@ -270,7 +296,6 @@ const AdminProductsPage = () => {
               </table>
             </div>
 
-            {/* Mobile/Responsive Card View (Visible at 1123px and below) */}
             <div className="min-[1124px]:hidden divide-y divide-slate-100">
               {products.map((p) => (
                 <div key={p._id} className="p-6 space-y-4">
@@ -333,13 +358,31 @@ const AdminProductsPage = () => {
                   <label className="text-[10px] font-black text-slate-400 uppercase">Description</label>
                   <textarea className="w-full p-4 bg-slate-50 rounded-xl outline-none" rows="3" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} required />
                 </div>
+                
+                {/* CATEGORY DROPDOWN WITH HIERARCHY */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Category</label>
-                  <select className="w-full p-4 bg-slate-50 rounded-xl outline-none font-bold" value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required>
-                    <option value="">Select</option>
-                    {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                  </select>
+                  <label className="text-[10px] font-black text-slate-400 uppercase">Category & Sub-category</label>
+                  <div className="relative">
+                    <select 
+                      className="w-full p-4 bg-slate-50 rounded-xl outline-none font-bold border border-transparent focus:border-amber-500 transition-all appearance-none" 
+                      value={formData.category} 
+                      onChange={(e) => setFormData({...formData, category: e.target.value})} 
+                      required
+                    >
+                      <option value="">Select</option>
+                      {getSortedCategories(categories).map(c => {
+                        const isSub = !!c.parent;
+                        return (
+                          <option key={c._id} value={c._id} className={isSub ? "text-slate-600" : "font-black"}>
+                            {isSub ? ` ${c.name}` : c.name.toUpperCase()}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 rotate-90 pointer-events-none" size={18} />
+                  </div>
                 </div>
+
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase">Price (₹)</label>
                   <input type="number" className="w-full p-4 bg-slate-50 rounded-xl outline-none font-bold" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} required />

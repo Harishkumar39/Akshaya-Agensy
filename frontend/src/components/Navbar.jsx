@@ -90,10 +90,16 @@ const Navbar = () => {
     navigate("/login");
   };
 
+  const mainCategories = categories.filter(cat => !cat.parent);
+  
+  const getSubCategories = (parentId) => {
+    return categories.filter(cat => cat.parent === parentId);
+  };
+
   return (
     <>
       {/* TOP ANNOUNCEMENT BAR */}
-      <div className="bg-[#1a1a1a] text-white text-[10px] md:text-xs py-2 px-6 flex justify-between items-center relative">
+      <div className="w-full bg-[#1a1a1a] text-white text-[10px] md:text-xs py-2 px-6 flex justify-between items-center relative">
         <div className="flex items-center gap-4">
           <span className="font-medium tracking-wide hidden sm:inline text-slate-400">Akshaya Agensy</span>
           
@@ -156,7 +162,7 @@ const Navbar = () => {
       </div>
 
       {/* MAIN NAV */}
-      <nav className="bg-white border-b sticky top-0 z-50 px-6 md:px-12 py-4 flex justify-between items-center shadow-sm">
+      <nav className="w-full bg-white border-b sticky top-0 z-50 px-6 md:px-12 py-4 flex justify-between items-center shadow-sm">
         <button className="md:hidden text-slate-800" onClick={() => setIsMenuOpen(true)}>
           <Menu size={24} />
         </button>
@@ -181,23 +187,37 @@ const Navbar = () => {
             </Link>
 
             {showCategories && (
-              <div className="absolute top-full -left-10 pt-2 w-72 z-50 animate-in fade-in slide-in-from-top-2">
-                <div className="bg-white shadow-2xl rounded-2xl border border-slate-100 overflow-hidden">
-                  <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-                    {categories.map((cat) => (
-                      <Link 
-                        key={cat._id}
-                        to={`/category/${cat.slug}`}
-                        className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition-colors group/item"
-                      >
-                        <div className="flex items-center gap-3 text-slate-600 group-hover/item:text-amber-600">
-                          <span className="text-amber-500/50 group-hover/item:text-amber-500">
+              /* Increased width slightly to accommodate sub-lists while keeping the same rounded/shadow style */
+              <div className="absolute top-full -left-40 pt-2 w-[800px] z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="bg-white shadow-2xl rounded-2xl border border-slate-100 overflow-hidden p-6">
+                  {/* Grid layout keeps things neat without changing the 'look' */}
+                  <div className="columns-3 gap-x-12 space-y-8 max-h-[600px] overflow-y-auto custom-scrollbar">
+                    {mainCategories.map((cat) => (
+                      <div key={cat._id} className="break-inside-avoid mb-5 flex flex-col">
+                        {/* Main Category Header - Uses your existing icon style */}
+                        <Link 
+                          to={`/category/${cat.slug}`}
+                          className="flex items-center gap-3 py-1 hover:text-amber-600 transition-colors group/item"
+                        >
+                          <span className="text-amber-500">
                             {iconMap[cat.name] || <PenTool size={16} />}
                           </span>
-                          <span className="text-[12px]">{cat.name}</span>
+                          <span className="text-[12px] font-black text-slate-900 uppercase tracking-wider">{cat.name}</span>
+                        </Link>
+
+                        {/* Sub-Categories List - Clean and matching your typography */}
+                        <div className="ml-7 mt-1 flex flex-col gap-1 border-l border-slate-100 pl-4">
+                          {getSubCategories(cat._id).map((sub) => (
+                            <Link 
+                              key={sub._id}
+                              to={`/category/${sub.slug}`}
+                              className="text-[11px] text-slate-500 hover:text-amber-500 transition-colors font-medium normal-case tracking-normal"
+                            >
+                              {sub.name}
+                            </Link>
+                          ))}
                         </div>
-                        <ChevronRight size={12} className="text-slate-300 group-hover/item:text-amber-500 transition-transform group-hover/item:translate-x-1" />
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -240,17 +260,21 @@ const Navbar = () => {
       {/* MOBILE SIDEBAR */}
       <div className={`fixed inset-0 bg-black/50 z-[100] transition-opacity duration-300 ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className={`fixed left-0 top-0 h-full w-80 bg-white shadow-2xl transition-transform duration-300 transform ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          
+          {/* Sidebar Header */}
           <div className="p-6 border-b flex justify-between items-center bg-slate-50">
-            <span className="font-black tracking-tighter text-xl text-slate-900">Akshaya <span className="text-amber-500">Agency</span></span>
+            <span className="font-black tracking-tighter text-xl text-slate-900">
+              Akshaya <span className="text-amber-500">Agency</span>
+            </span>
             <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
               <X size={24} />
             </button>
           </div>
 
-          <div className="flex flex-col p-4 font-bold text-sm uppercase tracking-widest text-slate-600">
+          <div className="flex flex-col p-4 font-bold text-sm uppercase tracking-widest text-slate-600 overflow-y-auto max-h-[calc(100vh-160px)]">
             <Link to="/" onClick={() => setIsMenuOpen(false)} className="py-4 border-b hover:text-amber-500 transition-colors">Home</Link>
             
-            {/* MOBILE CATEGORY ACCORDION */}
+            {/* MOBILE CATEGORY NESTED ACCORDION */}
             <div className="border-b">
               <button 
                 onClick={() => setIsMobileCatsOpen(!isMobileCatsOpen)}
@@ -261,18 +285,43 @@ const Navbar = () => {
               </button>
               
               {isMobileCatsOpen && (
-                <div className="bg-slate-50 rounded-xl mb-4 max-h-[300px] overflow-y-auto">
-                  {categories.map((cat) => (
-                    <Link 
-                      key={cat._id}
-                      to={`/category/${cat.slug}`}
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center gap-3 px-6 py-3 text-[11px] hover:text-amber-500 border-b border-white last:border-0"
-                    >
-                      <span className="text-amber-500/60">{iconMap[cat.name] || <PenTool size={14} />}</span>
-                      {cat.name}
-                    </Link>
-                  ))}
+                <div className="bg-slate-50 rounded-xl mb-4 overflow-hidden">
+                  {mainCategories.map((cat) => {
+                    const subs = getSubCategories(cat._id);
+                    const hasSubs = subs.length > 0;
+                    
+                    return (
+                      <div key={cat._id} className="border-b border-white last:border-0">
+                        {/* Parent Category Row */}
+                        <div className="flex items-center justify-between pr-4">
+                          <Link 
+                            to={`/category/${cat.slug}`}
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center gap-3 px-6 py-4 text-[11px] font-black text-slate-800 flex-1"
+                          >
+                            <span className="text-amber-500">{iconMap[cat.name] || <PenTool size={14} />}</span>
+                            {cat.name}
+                          </Link>
+                        </div>
+
+                        {/* Sub-items (Flat list under parent for mobile simplicity) */}
+                        {hasSubs && (
+                          <div className="bg-white/50 pb-2">
+                            {subs.map((sub) => (
+                              <Link 
+                                key={sub._id}
+                                to={`/category/${sub.slug}`}
+                                onClick={() => setIsMenuOpen(false)}
+                                className="flex items-center gap-3 pl-14 pr-6 py-2.5 text-[10px] text-slate-500 normal-case font-medium hover:text-amber-500"
+                              >
+                                {sub.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -281,19 +330,27 @@ const Navbar = () => {
             <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="py-4 border-b hover:text-amber-500 transition-colors">Contact</Link>
           </div>
 
-          {/* Logout Button in Mobile View */}
-          {user && (
-            <div className="mt-auto p-6 border-t">
+          {/* User Actions */}
+          <div className="mt-auto p-6 border-t bg-slate-50">
+            {user ? (
               <button 
                 onClick={handleLogoutClick}
-                className="w-full bg-red-50 text-red-600 py-4 rounded-xl font-black flex items-center justify-center gap-2"
+                className="w-full bg-white border border-red-100 text-red-600 py-4 rounded-xl font-black flex items-center justify-center gap-2 shadow-sm"
               >
-                <LogOut size={18} /> Logout
+                <LogOut size={18} /> LOGOUT
               </button>
-            </div>
-          )}
+            ) : (
+              <Link 
+                to="/login" 
+                onClick={() => setIsMenuOpen(false)}
+                className="w-full bg-amber-500 text-white py-4 rounded-xl font-black flex items-center justify-center gap-2 shadow-md"
+              >
+                LOGIN / REGISTER
+              </Link>
+            )}
+          </div>
         </div>
-</div>
+      </div>
     </>
   );
 };

@@ -133,7 +133,6 @@ export const verifyPaymentAndCreateOrder = async (req, res) => {
       // We log this but don't stop the order process
       console.error("Failed to save address to user profile:", userUpdateError.message);
     }
-
     const productIds = items.map(item => item._id);
     const dbProducts = await Product.find({ _id: { $in: productIds } });
 

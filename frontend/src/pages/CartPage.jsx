@@ -2,6 +2,7 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, CreditCard } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const CartPage = () => {
   const {
@@ -30,6 +31,10 @@ const CartPage = () => {
       navigate("/checkout");
     }
   };
+
+  useEffect(()=>{
+    window.scrollTo({top: 0 , behavior: "smooth"})
+  },[])
 
   // 1. EMPTY STATE
   if (!cartItems || cartItems.length === 0) {

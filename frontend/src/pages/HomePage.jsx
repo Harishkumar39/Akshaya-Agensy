@@ -33,10 +33,10 @@ const HomePage = () => {
   }, []);
 
   return (
-    <main className="max-w-[1600px] mx-auto py-6 md:py-10 px-4 md:px-12">
+    <main className="w-full mx-auto py-6 md:py-10 px-4 md:px-12">
 
       {/* 1. HERO SECTION */}
-      <section className="relative h-[500px] md:h-[700px] rounded-[2.5rem] md:rounded-[4rem] overflow-hidden bg-[#FEF6E4] flex items-center mb-12 md:mb-20 shadow-sm border border-amber-100/50">
+      <section className="relative min-h-[400px] md:h-[700px] w-full bg-[#FEF6E4] flex items-center py-12 md:py-0 mb-12 shadow-sm border-b border-amber-100/50">
         <div className="z-10 pl-8 md:pl-24 space-y-4 md:space-y-8 max-w-2xl">
           <div className="flex items-center gap-2 bg-amber-500/10 w-fit px-4 py-1.5 rounded-full border border-amber-500/20">
             <MapPin size={14} className="text-amber-600" />
@@ -76,85 +76,87 @@ const HomePage = () => {
       </section>
 
       {/* 2. CATEGORIES SECTION */}
-      <div className="mb-20">
-        <div className="flex flex-col mb-10 px-2">
-          <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase">Browse Categories</h2>
-          <div className="h-1.5 w-20 bg-amber-500 mt-3 rounded-full"></div>
-        </div>
-        <CategoryGrid />
-      </div>
-
-      {/* 3. BEST SELLERS / PRODUCT GRID */}
-      <section id="featured" className="mb-20">
-        <div className="flex flex-col md:flex-row justify-between md:items-start mb-12 gap-6 px-2">
-          <div className="space-y-2">
-            <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">Featured Collection</h2>
-            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Handpicked premium supplies for Akshaya Agensy</p>
+      <div className="max-w-[1400px] mx-auto px-4 md:px-12">
+        <div className="mb-20">
+          <div className="flex flex-col mb-10 px-2">
+            <h2 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase">Browse Categories</h2>
+            <div className="h-1.5 w-20 bg-amber-500 mt-3 rounded-full"></div>
           </div>
-          <Link to="/products" className="group flex items-center gap-2 text-amber-600 font-black text-xs md:text-sm uppercase tracking-widest">
-            View All Products 
-            <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
-          </Link>
+          <CategoryGrid />
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-amber-500" size={40} />
+        {/* 3. BEST SELLERS / PRODUCT GRID */}
+        <section id="featured" className="mb-20">
+          <div className="flex flex-col md:flex-row justify-between md:items-start mb-12 gap-6 px-2">
+            <div className="space-y-2">
+              <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">Featured Collection</h2>
+              <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Handpicked premium supplies for Akshaya Agensy</p>
+            </div>
+            <Link to="/products" className="group flex items-center gap-2 text-amber-600 font-black text-xs md:text-sm uppercase tracking-widest">
+              View All Products 
+              <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+            </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8">
-            {featuredProducts.map((product) => (
-              <div key={product._id} className="group bg-white rounded-[2rem] p-4 border border-slate-100 transition-all hover:shadow-2xl hover:shadow-slate-200">
-                <div className="aspect-square bg-slate-50 rounded-[1.5rem] overflow-hidden relative mb-4 flex items-center justify-center p-6">
-                  {product.images?.[0] ? (
-                    <img 
-                      src={getOptimizedUrl(product.images[0])} 
-                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" 
-                      alt={product.name}
-                    />
-                  ) : (
-                    <ImageIcon className="text-slate-200" size={48} />
-                  )}
-                  
-                  {product.hasVariants ? (
-                    <Link 
-                      to={`/product/${product._id}`}
-                      className="absolute bottom-4 left-4 right-4 bg-amber-500 text-white py-3 rounded-xl font-bold text-[10px] flex items-center justify-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all active:scale-95 shadow-lg"
-                    >
-                      <LayoutGrid size={14} /> SELECT OPTIONS
+
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="animate-spin text-amber-500" size={40} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8">
+              {featuredProducts.map((product) => (
+                <div key={product._id} className="group bg-white rounded-[2rem] p-4 border border-slate-100 transition-all hover:shadow-2xl hover:shadow-slate-200">
+                  <div className="aspect-square bg-slate-50 rounded-[1.5rem] overflow-hidden relative mb-4 flex items-center justify-center p-6">
+                    {product.images?.[0] ? (
+                      <img 
+                        src={getOptimizedUrl(product.images[0])} 
+                        className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" 
+                        alt={product.name}
+                      />
+                    ) : (
+                      <ImageIcon className="text-slate-200" size={48} />
+                    )}
+                    
+                    {product.hasVariants ? (
+                      <Link 
+                        to={`/product/${product._id}`}
+                        className="absolute bottom-4 left-4 right-4 bg-amber-500 text-white py-3 rounded-xl font-bold text-[10px] flex items-center justify-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all active:scale-95 shadow-lg"
+                      >
+                        <LayoutGrid size={14} /> SELECT OPTIONS
+                      </Link>
+                    ) : (
+                      <button 
+                        onClick={() => addToCart(product)}
+                        className="absolute bottom-4 left-4 right-4 bg-slate-900 text-white py-3 rounded-xl font-bold text-[10px] flex items-center justify-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all active:scale-95 shadow-lg"
+                      >
+                        <ShoppingCart size={14} /> ADD TO CART
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="px-2">
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter mb-1">
+                      {product.category?.name || "Stationery"}
+                    </p>
+                    <Link to={`/product/${product._id}`}>
+                      <h3 className="font-bold text-slate-800 line-clamp-1 group-hover:text-amber-500 transition-colors mb-2">
+                        {product.name}
+                      </h3>
                     </Link>
-                  ) : (
-                    <button 
-                      onClick={() => addToCart(product)}
-                      className="absolute bottom-4 left-4 right-4 bg-slate-900 text-white py-3 rounded-xl font-bold text-[10px] flex items-center justify-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all active:scale-95 shadow-lg"
-                    >
-                      <ShoppingCart size={14} /> ADD TO CART
-                    </button>
-                  )}
-                </div>
-
-                <div className="px-2">
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter mb-1">
-                    {product.category?.name || "Stationery"}
-                  </p>
-                  <Link to={`/product/${product._id}`}>
-                    <h3 className="font-bold text-slate-800 line-clamp-1 group-hover:text-amber-500 transition-colors mb-2">
-                      {product.name}
-                    </h3>
-                  </Link>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-black text-slate-900">₹{product.price}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-black text-slate-900">₹{product.price}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {!loading && featuredProducts.length === 0 && (
-          <p className="text-center text-slate-400 py-10 font-bold">No featured products at the moment.</p>
-        )}
-      </section>
+              ))}
+            </div>
+          )}
+          
+          {!loading && featuredProducts.length === 0 && (
+            <p className="text-center text-slate-400 py-10 font-bold">No featured products at the moment.</p>
+          )}
+        </section>
+      </div>
 
       {/* 4. CUSTOM REQUEST SECTION */}
       <section className="bg-slate-900 rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-20 flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl">

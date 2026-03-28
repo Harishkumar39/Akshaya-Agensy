@@ -41,9 +41,16 @@ const ProductListPage = () => {
     setPage(1);
   }, [categorySlug, searchQuery]);
 
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setSearchQuery(tempSearch);
+    }, 500);
+  
+    return () => clearTimeout(delayDebounceFn);
+  }, [tempSearch]);
+
   const getOptimizedUrl = (url) => {
-    if (!url) return "/placeholder.png"; 
-    if (typeof url !== "string") return "/placeholder.png";
+    if (!url || typeof url !== "string") return "/placeholder.png"; 
     if (!url.includes("cloudinary.com")) return url;
     return url.replace("/upload/", "/upload/f_auto,q_auto,w_800/");
   };
@@ -59,18 +66,20 @@ const ProductListPage = () => {
       try {
         const params = new URLSearchParams();
         if (categorySlug) params.append("category", categorySlug);
+        if (searchQuery) params.append("search", searchQuery);
         params.append("maxPrice", priceRange);
         params.append("sort", sortBy);
         params.append("page", page);
-        if (searchQuery) params.append("search", searchQuery);
+        params.append("limit", 12);
     
-        const baseUrl = `${API_URL}/api/products`;
-        const response = await fetch(`${baseUrl}?${params.toString()}`);
+        const response = await fetch(`${API_URL}/api/products?${params.toString()}`);
         const data = await response.json();
     
         setProducts(Array.isArray(data.products) ? data.products : []);
         setTotalPages(data.totalPages || 1);
-        window.scrollTo(0, 0);
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
       } catch (error) {
         console.error("Error loading products:", error);
       } finally {
@@ -81,24 +90,39 @@ const ProductListPage = () => {
     fetchProducts();
   }, [categorySlug, priceRange, sortBy, page, searchQuery]);
 
+  const mainCategories = categories.filter(cat => !cat.parent);
+  const getSubCategories = (parentId) => categories.filter(cat => cat.parent === parentId);
+
   return (
     /* 1. Updated Container: Matches HomePage width and padding */
-    <div className="max-w-[1600px] mx-auto px-4 md:px-12 py-6 md:py-10">
+    <div className="w-full mx-auto px-4 md:px-12 py-6 md:py-10">
       
       {/* BREADCRUMBS */}
-      <nav className="text-[10px] md:text-xs text-slate-400 mb-4 md:mb-8 flex items-center gap-1 capitalize font-black tracking-[0.2em]">
+      <nav className="text-[10px] md:text-xs text-slate-400 mb-6 flex items-center gap-2 capitalize font-black tracking-[0.2em]">
         <Link to="/" className="hover:text-amber-500 transition-colors">Home</Link>
-        <span className="text-slate-200">/</span>
-        <Link to="/products" className={`hover:text-amber-500 transition-colors ${!categorySlug ? 'text-slate-900' : ''}`}>Products</Link>
-        {categorySlug && (
-          <>
-            <span className="text-slate-200">/</span>
-            <span className="text-slate-900 capitalize">{categorySlug.replace(/-/g, ' ')}</span>
-          </>
-        )}
+        <span className="opacity-30">/</span>
+        <Link to="/products" className="hover:text-amber-500 transition-colors">Products</Link>
+        
+        {categorySlug && (() => {
+          const currentCat = categories.find(c => c.slug === categorySlug);
+          const parentCat = currentCat?.parent ? categories.find(c => c._id === currentCat.parent) : null;
+          
+          return (
+            <>
+              {parentCat && (
+                <>
+                  <span className="opacity-30">/</span>
+                  <Link to={`/category/${parentCat.slug}`} className="hover:text-amber-500 transition-colors">{parentCat.name}</Link>
+                </>
+              )}
+              <span className="opacity-30">/</span>
+              <span className="text-slate-900">{currentCat?.name || categorySlug.replace(/-/g, ' ')}</span>
+            </>
+          );
+        })()}
       </nav>
 
-      <div className="flex flex-col md:flex-row gap-8 lg:gap-12 items-start">
+      <div className="flex flex-col md:flex-row gap-8 lg:gap-24 items-start">
         
         {/* 2. SIDEBAR - Keeping it fixed width but adding better spacing */}
         <div 
@@ -108,39 +132,60 @@ const ProductListPage = () => {
 
         <aside 
           className={`
-            fixed inset-y-0 left-0 z-[100] w-72 bg-white transition-transform duration-300 ease-in-out
-            md:relative md:inset-auto md:z-0 md:translate-x-0 md:w-64 lg:w-72 md:flex-shrink-0
+            fixed inset-y-0 left-0 z-[100] w-64 bg-white transition-transform duration-300
+            md:relative md:inset-auto md:z-0 md:translate-x-0 md:w-56 lg:w-64 md:flex-shrink-0
             ${isMobileFilterOpen ? "translate-x-0" : "-translate-x-full"}
             h-[100dvh] md:h-auto overflow-y-auto
           `}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          <div className="p-6 md:p-0 flex flex-col h-full">
-            {/* ... Sidebar Internal Content remains the same ... */}
             <div className="md:sticky md:top-24">
                {/* Categories & Price Range Logic */}
-               <h2 className="font-black text-[12px] uppercase tracking-[0.2rem] mb-6 pl-2 pt-2 text-slate-400">Categories</h2>
-               <ul className="space-y-1 mb-10">
+               <h2 className="font-black text-[12px] uppercase tracking-[0.2rem] mb-4 pl-2 text-slate-400">Categories</h2>
+               <ul className="space-y-1 mb-10 px-1">
                 <li>
-                   <Link 
+                  <Link 
                     to="/products"
-                    onClick={() => {setIsMobileFilterOpen(false); setSearchQuery("");}}
-                    className={`text-sm block py-3 px-5 rounded-2xl transition-all font-bold ${!categorySlug ? 'bg-amber-500 text-white shadow-xl shadow-amber-100' : 'text-slate-600 hover:bg-slate-50'}`}
+                    onClick={() => {setIsMobileFilterOpen(false); setTempSearch("");}}
+                    className={`text-xs block py-3.5 px-5 rounded-2xl transition-all font-black uppercase tracking-widest ${!categorySlug ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'text-slate-600 hover:bg-slate-50'}`}
                   >
                     All Products
                   </Link>
                 </li>
-                {categories.map((cat) => (
-                  <li key={cat._id}>
-                    <Link 
-                      to={`/category/${cat.slug}`}
-                      onClick={() => setIsMobileFilterOpen(false)}
-                      className={`text-sm block py-3 px-5 rounded-2xl transition-all font-bold ${categorySlug === cat.slug ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' : 'text-slate-600 hover:bg-slate-50'}`}
-                    >
-                      {cat.name}
-                    </Link>
-                  </li>
-                ))}
+
+                {mainCategories.map((cat) => {
+                  const subs = getSubCategories(cat._id);
+                  const hasSubs = subs.length > 0;
+                  const isActive = categorySlug === cat.slug || subs.some(s => s.slug === categorySlug);
+
+                  return (
+                    <li key={cat._id} className="group">
+                        <Link 
+                          to={`/category/${cat.slug}`}
+                          onClick={() => setIsMobileFilterOpen(false)}
+                          className={`flex-1 text-[11px] block py-3.5 px-5 rounded-2xl transition-all font-black uppercase tracking-widest ${categorySlug === cat.slug ? 'bg-slate-900 text-white shadow-lg shadow-slate-200' : 'text-slate-600 hover:bg-slate-50'}`}
+                        >
+                          {cat.name}
+                        </Link>
+
+                      {/* Sub-category list (Only shows if it has children and the parent or a child is active) */}
+                      {hasSubs && isActive && (
+                        <div className="ml-3 mt-1 flex flex-col gap-0.5 border-l border-slate-100 pl-3 py-1">
+                          {subs.map((sub) => (
+                            <Link
+                              key={sub._id}
+                              to={`/category/${sub.slug}`}
+                              onClick={() => setIsMobileFilterOpen(false)}
+                              className={`text-[9px] py-2 px-2 rounded-lg font-bold transition-colors ${categorySlug === sub.slug ? 'text-amber-600 bg-amber-50' : 'text-slate-400 hover:text-slate-900'}`}
+                            >
+                              {sub.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
               {/* Price Range Slider */}
               <div className="px-2 pb-10">
@@ -163,11 +208,11 @@ const ProductListPage = () => {
                 </div>
               </div>
             </div>
-          </div>
+         
         </aside>
 
         {/* 3. MAIN AREA */}
-        <main className="flex-1 w-full">
+        <main className="flex-1 min-w-0">
           {/* Top Bar - Clean and Wide */}
           <div className="flex flex-col xl:flex-row gap-4 mb-10">
             <div className="relative flex-1 group">
@@ -210,7 +255,7 @@ const ProductListPage = () => {
 
           {/* Product Grid - Fluid column counts for Wide Screens */}
           {loading ? (
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6 md:gap-10">
              {[...Array(6)].map((_, n) => (
                <div key={n} className="bg-white rounded-[2.5rem] p-5 border border-slate-50 flex flex-col h-full animate-pulse">
                  <div className="aspect-square bg-slate-50 rounded-[2rem] mb-6 flex items-center justify-center">
@@ -257,7 +302,7 @@ const ProductListPage = () => {
           ) : products.length > 0 ? (
             <div>
               {/* UPDATED: Added xl:grid-cols-4 for extra width */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 md:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-6 md:gap-8">
                 {products.map((product) => (
                    <Link key={product._id} to={`/product/${product._id}`} className="group">
                     <div className="bg-white rounded-[2.5rem] p-5 border border-slate-100 transition-all hover:shadow-2xl hover:shadow-slate-200 h-full flex flex-col">
@@ -265,7 +310,7 @@ const ProductListPage = () => {
                         <img 
                           src={getOptimizedUrl(Array.isArray(product.images) ? product.images[0] : product.images)} 
                           alt={product.name} 
-                          className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" 
+                          className="max-h-full max-w-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" 
                         />
                         {product.hasVariants ? (
                           <div className="absolute bottom-3 left-3 right-3 md:bottom-5 md:left-5 md:right-5 bg-amber-500 text-white py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-[9px] md:text-[10px] tracking-widest flex items-center justify-center gap-2 

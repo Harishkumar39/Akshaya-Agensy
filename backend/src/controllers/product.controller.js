@@ -15,11 +15,15 @@ export const getProducts = async (req, res) => {
 
     if (req.query.category) {
       const cat = await Category.findOne({slug: req.query.category})
-      if(cat){
-        filters.category = cat._id;
-      }
-      else{
-        return res.json({products: [], totalPages: 0, total: 0})
+      if (cat) {
+
+        const subCategories = await Category.find({ parent: cat._id });
+        
+        const categoryIds = [cat._id, ...subCategories.map(sub => sub._id)];
+        
+        filters.category = { $in: categoryIds };
+      } else {
+        return res.json({ products: [], totalPages: 0, total: 0 });
       }
     }
 
@@ -44,7 +48,7 @@ export const getProducts = async (req, res) => {
     }
 
     const [products, total] = await Promise.all([
-      Product.find(filters).sort(sort).skip(skip).limit(limit),
+      Product.find(filters).sort(sort).skip(skip).limit(limit).populate("category", "name slug"),
       Product.countDocuments(filters),
     ]);
 
