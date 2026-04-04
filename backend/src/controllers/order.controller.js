@@ -85,6 +85,7 @@ export const createRazorpayOrder = async (req, res) => {
       amount: Math.round(total * 100),
       currency: "INR",
       receipt: `order_rcpt_${Date.now()}`,
+      payment_capture: 1,
     });
 
     res.json({ 
