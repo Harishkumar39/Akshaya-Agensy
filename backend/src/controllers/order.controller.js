@@ -140,15 +140,21 @@ export const verifyPaymentAndCreateOrder = async (req, res) => {
       const dbProduct = dbProducts.find(p => p._id.toString() === item._id);
       if (!dbProduct) throw new Error(`Product ${item._id} not found`);
 
-      let currentPrice;
-      if (item.variant && item.variant._id) {
-        // Find variant price in DB
-        const variant = dbProduct.variants.id(item.variant._id);
+      let currentPrice=0;
+      if (dbProduct.hasVariants && item.variant) {
+        // Find by ID or Name (covers all frontend sync scenarios)
+        const variant = dbProduct.variants.find(v => 
+          (item.variant._id && String(v._id) === String(item.variant._id)) || 
+          (v.name === item.variant.name)
+        );
         currentPrice = variant ? variant.price : dbProduct.price;
       } else {
         currentPrice = dbProduct.price;
       }
-      return acc + (currentPrice * item.qty);
+      const finalQty = Number(item.qty || item.quantity || 0);
+
+      // 3. Force numeric addition
+      return acc + (Number(currentPrice) * finalQty);
     }, 0);
 
     const verifiedShippingFee = calculateFee(verifiedSubtotal, shippingAddress); 
