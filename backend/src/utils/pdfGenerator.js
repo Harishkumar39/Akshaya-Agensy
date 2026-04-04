@@ -11,7 +11,7 @@ export const generateInvoicePDF = (order) => {
       // --- Header ---
       doc.fillColor("#0f172a").fontSize(20).font("Helvetica-Bold").text("AKSHAYA AGENSY", { align: "right" });
       doc.fillColor("#64748b").fontSize(10).font("Helvetica").text("Office & General Stationeries", { align: "right" });
-      doc.text("No. 282-A, Village High Road, Sholinganallur, Chennai - 600119. (Opp. to Tulip PLay School)", { align: "right" });
+      doc.text("No. 282-A, Village High Road, Sholinganallur, Chennai - 600119. (Opp. to Tulip Play School)", { align: "right" });
       doc.moveDown();
 
       // --- Order Info ---

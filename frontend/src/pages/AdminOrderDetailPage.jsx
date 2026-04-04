@@ -98,9 +98,21 @@ const AdminOrderDetailPage = () => {
                 </div>
               ))}
             </div>
-            <div className="p-6 bg-slate-50 flex justify-between items-center">
-              <span className="font-bold text-slate-500 uppercase text-xs tracking-widest">Total Amount</span>
-              <span className="text-2xl font-black text-slate-900">₹{order.total}</span>
+            <div className="p-6 bg-slate-50 space-y-3">
+              <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-500">
+                <span>Subtotal</span>
+                <span>₹{order.subtotal || (order.total - (order.shippingFee || 0))}</span>
+              </div>
+              
+              <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-500">
+                <span>Shipping Fee</span>
+                <span className="text-amber-600">+ ₹{order.shippingFee || 0}</span>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+                <span className="font-black text-slate-900 uppercase text-sm tracking-widest">Grand Total</span>
+                <span className="text-2xl font-black text-slate-900">₹{order.total}</span>
+              </div>
             </div>
           </div>
         </div>

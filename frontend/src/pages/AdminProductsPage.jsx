@@ -58,7 +58,11 @@ const AdminProductsPage = () => {
         try {
           const { data } = await axios.get(`${API_URL}/api/products/${editId}`);
           setEditingProduct(data);
-          setFormData(data);
+          setFormData({
+            ...initialFormState,
+            ...data,        
+            category: data.category?._id || data.category
+          });
           setIsModalOpen(true);
         } catch (err) {
           console.error("Failed to fetch product for editing", err);
@@ -150,8 +154,8 @@ const AdminProductsPage = () => {
         ...formData,
         variants: sanitizedVariants,
         hasVariants: sanitizedVariants.length > 0,
-        price: Number(formData.price),
-        stock: Number(formData.stock)
+        price: formData.price === "" ? 0 : Number(formData.price),
+        stock: formData.stock === "" ? 0 : Number(formData.stock),
       };
   
       const url = editingProduct 
@@ -183,7 +187,7 @@ const AdminProductsPage = () => {
       <div className="hidden min-[1124px]:flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-100 gap-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Inventory Management</h1>
-          <p className="text-slate-500 font-medium text-sm md:text-base">Managing stock for Akshaya Agency</p>
+          <p className="text-slate-500 font-medium text-sm md:text-base">Managing stock for Akshaya Agensy</p>
         </div>
         <button 
           onClick={() => { setEditingProduct(null); setFormData(initialFormState); setIsModalOpen(true); }}
@@ -365,11 +369,11 @@ const AdminProductsPage = () => {
                   <div className="relative">
                     <select 
                       className="w-full p-4 bg-slate-50 rounded-xl outline-none font-bold border border-transparent focus:border-amber-500 transition-all appearance-none" 
-                      value={formData.category} 
+                      value={typeof formData.category === 'object' ? formData.category?._id : (formData.category || "")} 
                       onChange={(e) => setFormData({...formData, category: e.target.value})} 
                       required
                     >
-                      <option value="">Select</option>
+                      <option value="" disabled>Select</option>
                       {getSortedCategories(categories).map(c => {
                         const isSub = !!c.parent;
                         return (
@@ -385,11 +389,11 @@ const AdminProductsPage = () => {
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase">Price (₹)</label>
-                  <input type="number" className="w-full p-4 bg-slate-50 rounded-xl outline-none font-bold" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} required />
+                  <input type="number" className="w-full p-4 bg-slate-50 rounded-xl outline-none font-bold" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required />
                 </div>
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase">Stock Units</label>
-                  <input type="number" className="w-full p-4 bg-slate-50 rounded-xl outline-none font-bold" value={formData.stock} onChange={(e) => setFormData({...formData, stock: Number(e.target.value)})} required />
+                  <input type="number" className="w-full p-4 bg-slate-50 rounded-xl outline-none font-bold" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} required />
                 </div>
               </div>
 

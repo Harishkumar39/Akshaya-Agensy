@@ -184,10 +184,18 @@ export const verifyPaymentAndCreateOrder = async (req, res) => {
     // 3. ONLY AFTER SUCCESS: Create the order
     const validatedItems = items.map(item => {
       const dbProd = dbProducts.find(p => p._id.toString() === item._id);
+      let finalPrice = dbProd.price; 
+      if (item.variant && item.variant._id) {
+        const dbVariant = dbProd.variants.id(item.variant._id);
+        if (dbVariant) {
+          finalPrice = dbVariant.price;
+        }
+      }
+    
       return {
         product: item._id,
-        qty: item.qty,
-        price: (item.variant && item.variant._id) ? dbProd.variants.id(item.variant._id).price : dbProd.price,
+        qty: Number(item.qty || item.quantity), 
+        price: finalPrice,
         name: dbProd.name,
         variant: item.variant ? { name: item.variant.name, _id: item.variant._id } : null,
         imageUrl: item.imageUrl

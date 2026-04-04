@@ -32,7 +32,7 @@ const Footer = () => {
       {/* 1. NEWSLETTER SECTION */}
       <div className="max-w-4xl mx-auto text-center mb-24">
         <h2 className="text-3xl md:text-4xl font-bold mb-8">
-          Subscribe And Get 10% Off Your <br className="hidden md:block" /> First Purchase.
+          Subscribe to get notified about <br className="hidden md:block" /> New Arrivals and Restock Alerts.
         </h2>
         <form onSubmit={handleSubscribe} className="relative max-w-2xl mx-auto">
           <input
