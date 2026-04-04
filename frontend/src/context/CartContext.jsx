@@ -17,14 +17,13 @@ export const CartProvider = ({ children }) => {
   const isSyncing = useRef(false);
   // --- 1. INITIAL LOAD LOGIC ---
   const loadCart = async () => {
-
     if (user) {
       try {
-        const { data } = await axios.get(`${API_URL}/api/cart`);
-
-        // Only auto-load from DB if the local state is currently empty
-        // This prevents the DB from overwriting the Guest Cart before it merges
-        if (data.items && cartItems.length === 0) {
+        const { data } = await axios.get(`${API_URL}/api/cart`, { withCredentials: true });
+  
+        // FIX: If we have a user, we should ALWAYS trust the DB data 
+        // over whatever was left in the local state or localStorage.
+        if (data.items) {
           const sanitizedItems = data.items.map((item) => ({
             _id: item.productId?._id || item._id,
             name: item.productId?.name || item.name || "Unknown Product",
@@ -33,7 +32,10 @@ export const CartProvider = ({ children }) => {
             variant: item.variant || null,
             qty: Number(item.quantity || item.qty) || 1,
           }));
+          
           setCartItems(sanitizedItems);
+          // Clean up localStorage so it doesn't conflict later
+          localStorage.removeItem("myStationeryCart");
         }
       } catch (err) {
         console.error("Fetch cart error:", err);
