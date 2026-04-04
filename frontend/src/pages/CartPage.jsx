@@ -26,7 +26,7 @@ const CartPage = () => {
   const handleCheckout = () => {
     if (!user) {
       alert("Please login to proceed with your order.");
-      navigate("/login?redirect=checkout");
+      navigate("/login?redirect=/checkout");
     } else {
       navigate("/checkout");
     }

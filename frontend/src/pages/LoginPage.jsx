@@ -16,7 +16,8 @@ const LoginPage = () => {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  const redirectPath = new URLSearchParams(location.search).get("redirect") || "/";
+  const rawRedirect = new URLSearchParams(location.search).get("redirect") || "/";
+  const redirectPath = rawRedirect.startsWith("/") ? rawRedirect : `/${rawRedirect}`;
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
